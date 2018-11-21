@@ -4,6 +4,7 @@ import math
 import numpy as np
 from modules import getInnerLayer
 from alexnet import alexnet
+from autoEncoder import *
 
 class layer:
     def __init__(self,tranable=false,teacherInfo,studentInfo):

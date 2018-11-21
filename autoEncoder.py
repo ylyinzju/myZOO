@@ -3,6 +3,7 @@ import torch
 import modules
 from modules import *
 
+
 class AutoEncoder:
     def __init__(self,typename,teacher,student):
         self.input_size=0
@@ -16,36 +17,46 @@ class AutoEncoder:
         if typename == 'fc':
             self.encode_net = getInnerLayer('fc', in_channels = self.input_size, out_channels = self.hidden_layer_size)
             self.decode_net = getInnerLayer('fc', in_channels = self.hidden_layer_size, out_channels = self.input_size)
+        ###
+        self.getParam = GetParams(self.encode_net.reallayer, self.decode_net.reallayer)
         self.criterion = getLoss('MSE')
-        self.optimizer = getOptimizer('SGD', self.parameters(), lr=0.05, momentum=0.9, weight_decay=0)
-
-    def parameters(self):
-        for pram in [self.encode_net,self.decode_net]:
-            yield pram.parameters()
+        self.optimizer = getOptimizer('SGD', self.getParam.parameters(), lr = 0.05, momentum = 0.9, weight_decay = 0)
+    
     '''
+    def parameters(self):
+        for pram in [self.encode_net.reallayer,self.decode_net.reallayer]:
+            yield pram.parameters()  
+    '''
+
     def run_step(self,x):
-        distill_feature = self.encode_net(x)
-        reconstruct_feature = self.decode_net(distill_feature)
-        return distill_feature, reconstruct_featrue
+        distill_feature, reconstruct_feature = self.getParam(x)
+        return distill_feature, reconstruct_feature
     '''
     def cal_loss(self, x , target):
         calcLoss(self.criterion, self.optimizier, x ,target, data_loader)        
     
     def train_step(self,data):
         return self.encode_net(data)
-    
+
     def run_step(self,data):
         return self.decode_net(data)
     '''
-    def cal_loss(self,x):
-        distill_feature = train_step(x)
-        reconstruct_feature = run_step(distill_feature)
-        loss = self.criterion(x, reconstruct_feature)
-        self.optimizier.zero_grad()
+    def cal_loss(self, x, target):
+        loss = self.criterion(target, x)
+        self.optimizer.zero_grad()
         loss.backward()
-        self.optimizier.step()
-    '''
+        self.optimizer.step()
+        return loss
 
+A = AutoEncoder('conv', [64,64],72) #initialized autoencoder
+img = torch.autograd.Variable((torch.arange(32*32*128).view(1,128,32,32)))#concatfeature
+print(img)
+for i in range(20):
+    print(i)
+    print(A)
+    dis, res = A.getParam(img) 
+ #   print(dis)
+    print(res)
+    loss = A.cal_loss(img, res)
+    print(loss)
 
-A = AutoEncoder('conv', [64,64],72)
-print(A)
