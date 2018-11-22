@@ -41,8 +41,11 @@ class innerLayer:
         return self.databuffer
 
     def obtain_middle_result(self, module,input,output):
-        print('3')
+#        print('3')
         self.databuffer = output.data
+
+    def parameters(self):
+        yield self.reallayer.parameters()
 
 
 def getInnerLayer(typename,**args):
@@ -56,16 +59,38 @@ def getInnerLayer(typename,**args):
             print("layer initialize parameter error")
             return 
         return innerLayer(nn.Linear(**args))
+
+
+class GetParams(nn.Module):
+    def __init__(self, encode, decode):
+        super(GetParams, self).__init__()
+
+        self.conv1 = encode
+        self.conv2 = decode 
+
+    def forward(self, x):
+        x1 = self.conv1(x)
+        x2 = self.conv2(x1)    
+        return x1,x2
+
     
 def getLoss(name,**args):
-    if name=="MSE":
-        return nn.MSELoss(size_average=True)
+    if name == "MSE":
+        return nn.MSELoss(size_average = True)
     else:
         print("loss name not supported")
-
+'''
 def getOptimizer(name,**args):
-    if name=="SGD":
+    if name == "SGD":
         return optim.SGD(**args)
+    else:
+        print("optimizer name not supported")
+'''
+def getOptimizer(name, param, lr, momentum, weight_decay):
+    if name == 'SGD':
+        return optim.SGD(param, lr, momentum, weight_decay)
+    else:
+        print("optimizer name not supported")
 
 ###################not ok
 def calcLoss(criterion, optimizier, input, target, data_loader):
@@ -88,9 +113,11 @@ def concatFeature(featurelist):
             resultfeature=torch.cat((resultfeature,feature),dim=1)
     return resultfeature
 
-
+'''
 L = getInnerLayer('conv', in_channels=64, out_channels=24, kernel_size=1)
 img = torch.autograd.Variable((torch.arange(32*32*64).view(1,64,32,32)))
 #handle = L.reallayer.register_forward_hook(L.obtain_middle_result)
 L(img)
 print(L.get_run_result())
+print(L.parameters())
+'''
