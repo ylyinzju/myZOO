@@ -10,14 +10,12 @@ import math
 
 class innerLayer:
     def __init__(self,reallayer):
-        print('1')
         self.reallayer = reallayer
         self.initialized = False
         self.databuffer = None 
         self.reallayer.register_forward_hook(self.obtain_middle_result)
 
     def __call__(self,data):
-        print('2')
         if self.initialized == False:
             self._initialize_weight()
             self.initialized = True
@@ -41,26 +39,36 @@ class innerLayer:
         return self.databuffer
 
     def obtain_middle_result(self, module,input,output):
-#        print('3')
         self.databuffer = output.data
 
-    def parameters(self):
-        yield self.reallayer.parameters()
+#    def parameters(self):
+#        yield self.reallayer.parameters()
 
 
 def getInnerLayer(typename,**args):
-    if typename == "conv":
+    if typename == "Conv2d":
         if 'in_channels' not in args or 'out_channels' not in args or 'kernel_size' not in args:
             print("layer initialize parameter error")
             return
         return innerLayer(nn.Conv2d(**args))
-    if typename == "fc":
+ 
+    if typename == "Linear":
         if 'in_channels' not in args or 'out_channels' not in args:
             print("layer initialize parameter error")
             return 
         return innerLayer(nn.Linear(**args))
 
+    if typename == "ReLU":
+        return innerLayer(nn.ReLU(inplace=False))
 
+    if typename == "MaxPool2d":
+        return innerLayer(nn.MaxPool2d(kernel_size=3, stride=2)
+
+    if typename == "Dropout":
+        return innerLayer(nn.Dropout())
+
+
+#### a bit strange can be modified
 class GetParams(nn.Module):
     def __init__(self, encode, decode):
         super(GetParams, self).__init__()
@@ -92,16 +100,18 @@ def getOptimizer(name, param, lr, momentum, weight_decay):
     else:
         print("optimizer name not supported")
 
-###################not ok
-def calcLoss(criterion, optimizier, input, target, data_loader):
-  #  for i, (data, labels) in enumerate(data_loader):
-  #      if use_cuda:
-  #          data = data.cuda()
-  #      data = Variable(data, valatile=True)
-    loss = criterion(target, x)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+##########   ing   ##############
+def calcLoss(criterion, optimizier, concat_feat, recons_feat, data_loader, use_cuda):
+    for i, (data, labels) in enumerate(data_loader):
+        if use_cuda:
+            data = data.cuda()
+        data = Variable(data, valatile=True)
+    
+        loss = criterion(target, x)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+    
     return loss
 
 def concatFeature(featurelist):

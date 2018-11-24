@@ -38,23 +38,29 @@ teacher2 = teacher2.cuda()
 
 train_loader = getDataSet()
 
-A = AutoEncoder('conv', [192, 192] ,210)
+A = AutoEncoder('conv', [64, 64] ,72)
 losses = 0
 optimizer = A.optimizer
 criterion = A.criterion
 A.getParam.cuda()
 num_image = 0
 
+print(A.encode_net.reallayer.weight)
+print(A.encode_net.reallayer.bias)
+print(A.decode_net.reallayer.weight)
+print(A.decode_net.reallayer.bias)
+
 
 for epoch in range(10):
     for i, (data, labels) in enumerate(train_loader):
         data = data.cuda()
         data = Variable(data, volatile=True)
+       
         teacher1(data)
-        concatfeature = outputs[3]
+        concatfeature = outputs[0]
         outputs = []
         teacher2(data)
-        concatfeature = torch.cat((concatfeature, outputs[3]), dim=1)
+        concatfeature = torch.cat((concatfeature, outputs[0]), dim=1)
         outputs = []
 
         feed_feat = Variable(concatfeature)
@@ -68,10 +74,12 @@ for epoch in range(10):
         optimizer.step()
         if i%64 == 0:
             print(losses/num_image)
-    print(feed_feat)
-    print(reconstruct_feature)
+ #   print(feed_feat)
+ #   print(reconstruct_feature)
     print('*******************************')
 
-print(A.encode_net)
-print(A.decode_net)
-print(distill_feature)
+print(A.encode_net.reallayer.weight)
+print(A.encode_net.reallayer.bias)
+print(A.decode_net.reallayer.weight)
+print(A.decode_net.reallayer.bias)
+#print(distill_feature)

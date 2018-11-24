@@ -11,13 +11,13 @@ class AutoEncoder:
             self.input_size = self.input_size + i
         self.hidden_layer_size = student
         if typename == 'conv':
-            self.encode_net = getInnerLayer('conv', in_channels = self.input_size, out_channels = self.hidden_layer_size, kernel_size=1)
-            self.decode_net = getInnerLayer('conv', in_channels = self.hidden_layer_size, out_channels = self.input_size, kernel_size=1)
+            self.encode_net = getInnerLayer('Conv2d', in_channels = self.input_size, out_channels = self.hidden_layer_size, kernel_size=1)
+            self.decode_net = getInnerLayer('Conv2d', in_channels = self.hidden_layer_size, out_channels = self.input_size, kernel_size=1)
 
         if typename == 'fc':
-            self.encode_net = getInnerLayer('fc', in_channels = self.input_size, out_channels = self.hidden_layer_size)
-            self.decode_net = getInnerLayer('fc', in_channels = self.hidden_layer_size, out_channels = self.input_size)
-        ###
+            self.encode_net = getInnerLayer('Linear', in_channels = self.input_size, out_channels = self.hidden_layer_size)
+            self.decode_net = getInnerLayer('Linear', in_channels = self.hidden_layer_size, out_channels = self.input_size)
+        
         self.getParam = GetParams(self.encode_net.reallayer, self.decode_net.reallayer)
         self.criterion = getLoss('MSE')
         self.optimizer = getOptimizer('SGD', self.getParam.parameters(), lr = 0.05, momentum = 0.9, weight_decay = 0)
@@ -31,6 +31,7 @@ class AutoEncoder:
     def run_step(self,x):
         distill_feature, reconstruct_feature = self.getParam(x)
         return distill_feature, reconstruct_feature
+    
     '''
     def cal_loss(self, x , target):
         calcLoss(self.criterion, self.optimizier, x ,target, data_loader)        

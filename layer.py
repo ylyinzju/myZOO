@@ -7,35 +7,39 @@ from alexnet import alexnet
 from autoEncoder import *
 
 class layer:
-    def __init__(self,tranable=false,teacherInfo,studentInfo):
+    def __init__(self,teacherInfo,studentInfo,tranable=False):
         if tranable:
             for t in teacherInfo:
-                self.teacher.append(getInnerLayer(t.type,t.args()))
-            self.student = getInnerLayer(studentInfo.type,studentInfo.args())
+                self.teacher.append(getInnerLayer(t.typename,t.getargs()))
+            self.student = getInnerLayer(studentInfo.typename,studentInfo.getargs())
             self.autoEncoder = AutoEncoder(studentInfo.type,[i.out_channels for i in teacherInfo],studentInfo.out_channels)
-    
+        else:#### initialize a none-trainable layer
+            #### should be able to use the type to construct a nn.Relu
+            self.teacher = innerLayer(teacherInfo.type)
+            self.student = None
+            self.autoEncoder = None
+        
+
     def processFeatureDistill(self):
         teacherConcatFeature = concatFeature([teacher.get_run_result() for teacher in self.teacher])
- #       distill_feature = self.autoEncoder.train_step(teacherConcatFeature)
-#        reconstruct_feature = self.autoEncoder.run_step(distill_feature)
-#        loss = self.autoEncoder.criterion(reconstruct_feature, teacherConcatFeature)
         distill_feature, reconstruct_featrue = self.autoEncoder.run_step(teacherConcatFeature)
         loss = self.autoEncoder.cal_loss(teacherConcatFeature, reconstruct_feature)
-
+        
 
     def processFeatureAmalgamation(self):
         #do sth
+        return 
 
     def processLayerwiseLearning(self):
         #do sth
-
+        return 
     
-    self.teacher = []
-    self.innerLayers = []
+    #self.teacher = []
+    #self.innerLayers = []
     
 
 def main():
-
+    return
 
 
 if __name__=='__main__':
